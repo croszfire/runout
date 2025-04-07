@@ -1401,7 +1401,7 @@ function App() {
                                       </span>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center space-x-3 text-indigo-600 dark:text-indigo-400 mt-1">
+                                    <div className="flex items-center space-x-3 text-indigo-600 dark:text-indigo-400">
                                       <span className="font-mono font-bold">
                                         {formatDisplayTime(event.startTime)} - {formatDisplayTime(event.endTime)}
                                       </span>
