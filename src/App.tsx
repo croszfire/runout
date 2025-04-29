@@ -748,24 +748,26 @@ function App() {
     const isMinimized = minimizedSections[sectionId];
 
     return (
-      <div className={`fixed right-4 top-4 w-80 ${cardBg} rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isMinimized ? 'w-16' : 'w-80'}`}>
+      <div className={`fixed right-0 top-1/2 -translate-y-1/2 ${cardBg} shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isMinimized ? 'w-8 h-32' : 'w-72 max-h-[80vh]'} rounded-l-lg`}>
         <div 
-          className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className={`flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${isMinimized ? 'h-full w-8 writing-mode-vertical' : 'p-3 justify-between'}`}
           onClick={() => toggleMinimize(sectionId)}
         >
-          <h3 className={`text-lg font-semibold ${textColor} ${isMinimized ? 'hidden' : 'block'}`}>Details</h3>
-          <button className={`transform transition-transform ${isMinimized ? 'rotate-90' : '-rotate-90'}`}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h3 className={`text-sm font-semibold ${textColor} ${isMinimized ? 'rotate-180 whitespace-nowrap transform-origin-center' : ''}`}>
+            Details
+          </h3>
+          <button className={`transform transition-transform ${isMinimized ? 'hidden' : '-rotate-90'}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </div>
         
-        <div className={`transition-all duration-300 ease-in-out ${isMinimized ? 'max-h-0 opacity-0' : 'max-h-[calc(100vh-8rem)] opacity-100'} overflow-y-auto custom-scrollbar`}>
-          <div className="p-4 space-y-4">
-            <div className={`p-3 ${resultBg} rounded-md`}>
-              <h4 className={`${resultText} font-medium mb-2`}>Input Values</h4>
-              <div className="space-y-1 text-sm">
+        <div className={`transition-all duration-300 ease-in-out ${isMinimized ? 'max-h-0 opacity-0' : 'max-h-[calc(80vh-3rem)] opacity-100'} overflow-y-auto custom-scrollbar`}>
+          <div className="p-3 space-y-3">
+            <div className={`p-2 ${resultBg} rounded-md`}>
+              <h4 className={`${resultText} font-medium mb-1 text-sm`}>Input Values</h4>
+              <div className="space-y-1 text-xs">
                 <p>Current Progress: {line.currentProgress}</p>
                 <p>Start Count: {line.startCount}</p>
                 <p>Models Sum: {line.models.reduce((sum, num) => sum + parseFloat(num), 0)}</p>
@@ -773,9 +775,9 @@ function App() {
               </div>
             </div>
 
-            <div className={`p-3 ${resultBg} rounded-md`}>
-              <h4 className={`${resultText} font-medium mb-2`}>Calculations</h4>
-              <div className="space-y-2 text-sm">
+            <div className={`p-2 ${resultBg} rounded-md`}>
+              <h4 className={`${resultText} font-medium mb-1 text-sm`}>Calculations</h4>
+              <div className="space-y-1 text-xs">
                 <div>
                   <p className="font-medium">Remaining Work:</p>
                   <p className="font-mono pl-2">|{line.currentProgress} - {line.startCount} - {line.models.reduce((sum, num) => sum + parseFloat(num), 0)}|</p>
@@ -790,11 +792,11 @@ function App() {
               </div>
             </div>
 
-            <div className={`p-3 ${resultBg} rounded-md`}>
-              <h4 className={`${resultText} font-medium mb-2`}>Break Adjustments</h4>
-              <div className="space-y-1 text-sm">
+            <div className={`p-2 ${resultBg} rounded-md`}>
+              <h4 className={`${resultText} font-medium mb-1 text-sm`}>Break Adjustments</h4>
+              <div className="space-y-1 text-xs">
                 {line.result.breakTimeline.map((timeline, index) => (
-                  <div key={index} className="mb-2">
+                  <div key={index} className="mb-1">
                     <p className="font-medium">{timeline.shiftDate}:</p>
                     <p className="pl-2">Total Break Time: {timeline.totalBreakTime}</p>
                   </div>
