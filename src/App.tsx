@@ -743,6 +743,35 @@ function App() {
     }));
   };
 
+  const handleTimeJump = (lineNumber: number) => {
+    const line = lines[lineNumber];
+    if (!line.result) return;
+
+    // Add 30 minutes to completion time
+    const hours = parseInt(line.result.completionTime.substring(0, 2));
+    const minutes = parseInt(line.result.completionTime.substring(2));
+    let totalMinutes = hours * 60 + minutes + 30;
+    
+    if (totalMinutes >= 24 * 60) totalMinutes -= 24 * 60;
+    
+    const newHours = Math.floor(totalMinutes / 60);
+    const newMinutes = totalMinutes % 60;
+    const newCompletionTime = `${newHours.toString().padStart(2, '0')}${newMinutes.toString().padStart(2, '0')}`;
+
+    // Update the result with new completion time
+    setLines(prev => ({
+      ...prev,
+      [lineNumber]: {
+        ...prev[lineNumber],
+        result: {
+          ...prev[lineNumber].result!,
+          completionTime: newCompletionTime,
+          completionShift: getShiftType(newCompletionTime, lineNumber, schedule)
+        }
+      }
+    }));
+  };
+
   const renderCalculationDetails = (line: LineCalculator) => {
     if (!line.result) return null;
     const sectionId = `calc-details-${activeTab}`;
@@ -850,7 +879,15 @@ function App() {
         <div className={`transition-all duration-300 ease-in-out ${isMinimized ? 'max-h-0 opacity-0' : 'max-h-[calc(80vh-3rem)] opacity-100'} overflow-y-auto custom-scrollbar`}>
           <div className="p-4 space-y-4">
             <div className={`p-3 ${resultBg} rounded-md`}>
-              <h4 className={`${resultText} font-medium mb-2`}>Completion Time</h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className={`${resultText} font-medium`}>Completion Time</h4>
+                <button
+                  onClick={() => handleTimeJump(activeTab)}
+                  className="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium transition-colors"
+                >
+                  JUMP +30m
+                </button>
+              </div>
               <p className="font-mono text-lg font-bold">{formatDisplayTime(line.result.completionTime)}</p>
               <p className="text-sm mt-1">{line.result.completionDate}</p>
             </div>
