@@ -243,31 +243,32 @@ const initialSchedule: Record<number, LineSchedule> = {
   7: {
     dayShift: {
       enabled: true,
-      startTime: '0600',
-      endTime: '1430',
+      startTime: '0635',
+      endTime: '1505',
       breaks: [
-        { startTime: '0930', endTime: '0945' },
-        { startTime: '1200', endTime: '1230' }
+        { startTime: '0900', endTime: '0910' },
+        { startTime: '1130', endTime: '1200' },
+        { startTime: '1400', endTime: '1410' }
       ]
     },
     afternoonShift: {
       enabled: false,
-      startTime: '1425',
-      endTime: '2255',
+      startTime: '1500',
+      endTime: '2330',
       breaks: [
-        { startTime: '1625', endTime: '1635' },
-        { startTime: '1855', endTime: '1925' },
-        { startTime: '2125', endTime: '2135' }
+        { startTime: '1700', endTime: '1710' },
+        { startTime: '1930', endTime: '2000' },
+        { startTime: '2200', endTime: '2210' }
       ]
     },
     nightShift: {
-      enabled: true,
-      startTime: '2145',
-      endTime: '0615',
+      enabled: false,
+      startTime: '2330',
+      endTime: '0630',
       breaks: [
-        { startTime: '0000', endTime: '0010' },
-        { startTime: '0200', endTime: '0230' },
-        { startTime: '0430', endTime: '0440' }
+        { startTime: '0100', endTime: '0110' },
+        { startTime: '0330', endTime: '0400' },
+        { startTime: '0530', endTime: '0540' }
       ]
     }
   }
@@ -809,6 +810,62 @@ function App() {
     );
   };
 
+  const renderProjectedPullTime = (line: LineCalculator) => {
+    if (!line.result) return null;
+    const sectionId = `projected-pull-${activeTab}`;
+    const isMinimized = minimizedSections[sectionId];
+
+    // Calculate projected pull time (15 minutes before completion)
+    const getProjectedPullTime = (completionTime: string) => {
+      const hours = parseInt(completionTime.substring(0, 2));
+      const minutes = parseInt(completionTime.substring(2));
+      let totalMinutes = hours * 60 + minutes - 15;
+      
+      if (totalMinutes < 0) totalMinutes += 24 * 60;
+      
+      const newHours = Math.floor(totalMinutes / 60);
+      const newMinutes = totalMinutes % 60;
+      
+      return `${newHours.toString().padStart(2, '0')}${newMinutes.toString().padStart(2, '0')}`;
+    };
+
+    const projectedPullTime = getProjectedPullTime(line.result.completionTime);
+
+    return (
+      <div className={`fixed left-0 top-1/2 -translate-y-1/2 ${cardBg} shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isMinimized ? 'w-8 h-32' : 'w-72'} rounded-r-lg`}>
+        <div 
+          className={`flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${isMinimized ? 'h-full w-8 writing-mode-vertical' : 'p-3 justify-between'}`}
+          onClick={() => toggleMinimize(sectionId)}
+        >
+          <h3 className={`text-sm font-semibold ${textColor} ${isMinimized ? 'rotate-180 whitespace-nowrap transform-origin-center' : ''}`}>
+            Projected Times
+          </h3>
+          <button className={`transform transition-transform ${isMinimized ? 'hidden' : 'rotate-90'}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className={`transition-all duration-300 ease-in-out ${isMinimized ? 'max-h-0 opacity-0' : 'max-h-[calc(80vh-3rem)] opacity-100'} overflow-y-auto custom-scrollbar`}>
+          <div className="p-4 space-y-4">
+            <div className={`p-3 ${resultBg} rounded-md`}>
+              <h4 className={`${resultText} font-medium mb-2`}>Completion Time</h4>
+              <p className="font-mono text-lg font-bold">{formatDisplayTime(line.result.completionTime)}</p>
+              <p className="text-sm mt-1">{line.result.completionDate}</p>
+            </div>
+            
+            <div className={`p-3 ${resultBg} rounded-md`}>
+              <h4 className={`${resultText} font-medium mb-2`}>Projected Pull Time</h4>
+              <p className="font-mono text-lg font-bold">{formatDisplayTime(projectedPullTime)}</p>
+              <p className="text-sm mt-1 text-indigo-600 dark:text-indigo-400">15 minutes before completion</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const bgColor = darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100';
   const cardBg = darkMode ? 'bg-gray-800' : 'bg-white';
   const textColor = darkMode ? 'text-gray-100' : 'text-gray-800';
@@ -1251,7 +1308,12 @@ function App() {
           )}
         </div>
       </div>
-      {!showHistory && !showSettings && lines[activeTab].result && renderCalculationDetails(lines[activeTab])}
+      {!showHistory && !showSettings && lines[activeTab].result && (
+        <>
+          {renderProjectedPullTime(lines[activeTab])}
+          {renderCalculationDetails(lines[activeTab])}
+        </>
+      )}
     </div>
   );
 }
