@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calculator, Settings, Sun, Moon, RefreshCw, Save, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Clock, Calculator, Settings, Sun, Moon, RefreshCw, Save, Trash2, ToggleLeft, ToggleRight, Printer } from 'lucide-react';
+import PrintHistory from './PrintHistory';
 
 interface CalculationResult {
   militaryTime: string;
@@ -307,7 +308,10 @@ function App() {
   const [activeTab, setActiveTab] = useState(2);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [schedule, setSchedule] = useState(initialSchedule);
+  const [schedule, setSchedule] = useState(() => {
+    const savedSchedule = localStorage.getItem('lineSchedules');
+    return savedSchedule ? JSON.parse(savedSchedule) : initialSchedule;
+  });
   const [activeShift, setActiveShift] = useState<'Day' | 'Afternoon' | 'Night'>('Day');
   const [savedCalculations, setSavedCalculations] = useState<SavedCalculation[]>([]);
   const [lines, setLines] = useState<Record<number, LineCalculator>>({
@@ -319,6 +323,7 @@ function App() {
     7: getInitialLineState(7)
   });
   const [minimizedSections, setMinimizedSections] = useState<Record<string, boolean>>({});
+  const [showPrintView, setShowPrintView] = useState(false);
 
   useEffect(() => {
     const loadSavedCalculations = () => {
@@ -338,16 +343,20 @@ function App() {
   }, []);
 
   const toggleShift = (lineNumber: number, shift: 'dayShift' | 'afternoonShift' | 'nightShift') => {
-    setSchedule(prev => ({
-      ...prev,
-      [lineNumber]: {
-        ...prev[lineNumber],
-        [shift]: {
-          ...prev[lineNumber][shift],
-          enabled: !prev[lineNumber][shift].enabled
+    setSchedule(prev => {
+      const newSchedule = {
+        ...prev,
+        [lineNumber]: {
+          ...prev[lineNumber],
+          [shift]: {
+            ...prev[lineNumber][shift],
+            enabled: !prev[lineNumber][shift].enabled
+          }
         }
-      }
-    }));
+      };
+      localStorage.setItem('lineSchedules', JSON.stringify(newSchedule));
+      return newSchedule;
+    });
   };
 
   const saveCalculation = (lineNumber: number) => {
@@ -534,28 +543,36 @@ function App() {
     value: string | boolean
   ) => {
     if (field === 'enabled') {
-      setSchedule(prev => ({
-        ...prev,
-        [lineNumber]: {
-          ...prev[lineNumber],
-          [shift]: {
-            ...prev[lineNumber][shift],
-            enabled: value as boolean
+      setSchedule(prev => {
+        const newSchedule = {
+          ...prev,
+          [lineNumber]: {
+            ...prev[lineNumber],
+            [shift]: {
+              ...prev[lineNumber][shift],
+              enabled: value as boolean
+            }
           }
-        }
-      }));
+        };
+        localStorage.setItem('lineSchedules', JSON.stringify(newSchedule));
+        return newSchedule;
+      });
     } else {
       const formattedTime = formatMilitaryTime(value as string);
-      setSchedule(prev => ({
-        ...prev,
-        [lineNumber]: {
-          ...prev[lineNumber],
-          [shift]: {
-            ...prev[lineNumber][shift],
-            [field]: formattedTime
+      setSchedule(prev => {
+        const newSchedule = {
+          ...prev,
+          [lineNumber]: {
+            ...prev[lineNumber],
+            [shift]: {
+              ...prev[lineNumber][shift],
+              [field]: formattedTime
+            }
           }
-        }
-      }));
+        };
+        localStorage.setItem('lineSchedules', JSON.stringify(newSchedule));
+        return newSchedule;
+      });
     }
   };
 
@@ -567,44 +584,56 @@ function App() {
     value: string
   ) => {
     const formattedTime = formatMilitaryTime(value);
-    setSchedule(prev => ({
-      ...prev,
-      [lineNumber]: {
-        ...prev[lineNumber],
-        [shift]: {
-          ...prev[lineNumber][shift],
-          breaks: prev[lineNumber][shift].breaks.map((breakTime, index) =>
-            index === breakIndex ? { ...breakTime, [field]: formattedTime } : breakTime
-          )
+    setSchedule(prev => {
+      const newSchedule = {
+        ...prev,
+        [lineNumber]: {
+          ...prev[lineNumber],
+          [shift]: {
+            ...prev[lineNumber][shift],
+            breaks: prev[lineNumber][shift].breaks.map((breakTime, index) =>
+              index === breakIndex ? { ...breakTime, [field]: formattedTime } : breakTime
+            )
+          }
         }
-      }
-    }));
+      };
+      localStorage.setItem('lineSchedules', JSON.stringify(newSchedule));
+      return newSchedule;
+    });
   };
 
   const addBreak = (lineNumber: number, shift: 'dayShift' | 'afternoonShift' | 'nightShift') => {
-    setSchedule(prev => ({
-      ...prev,
-      [lineNumber]: {
-        ...prev[lineNumber],
-        [shift]: {
-          ...prev[lineNumber][shift],
-          breaks: [...prev[lineNumber][shift].breaks, { startTime: '1200', endTime: '1230' }]
+    setSchedule(prev => {
+      const newSchedule = {
+        ...prev,
+        [lineNumber]: {
+          ...prev[lineNumber],
+          [shift]: {
+            ...prev[lineNumber][shift],
+            breaks: [...prev[lineNumber][shift].breaks, { startTime: '1200', endTime: '1230' }]
+          }
         }
-      }
-    }));
+      };
+      localStorage.setItem('lineSchedules', JSON.stringify(newSchedule));
+      return newSchedule;
+    });
   };
 
   const removeBreak = (lineNumber: number, shift: 'dayShift' | 'afternoonShift' | 'nightShift', breakIndex: number) => {
-    setSchedule(prev => ({
-      ...prev,
-      [lineNumber]: {
-        ...prev[lineNumber],
-        [shift]: {
-          ...prev[lineNumber][shift],
-          breaks: prev[lineNumber][shift].breaks.filter((_, index) => index !== breakIndex)
+    setSchedule(prev => {
+      const newSchedule = {
+        ...prev,
+        [lineNumber]: {
+          ...prev[lineNumber],
+          [shift]: {
+            ...prev[lineNumber][shift],
+            breaks: prev[lineNumber][shift].breaks.filter((_, index) => index !== breakIndex)
+          }
         }
-      }
-    }));
+      };
+      localStorage.setItem('lineSchedules', JSON.stringify(newSchedule));
+      return newSchedule;
+    });
   };
 
   const calculateTime = (lineNumber: number) => {
@@ -747,12 +776,12 @@ function App() {
     const line = lines[lineNumber];
     if (!line.result) return;
 
-    // Add 30 minutes to completion time
+    // Subtract 30 minutes from completion time
     const hours = parseInt(line.result.completionTime.substring(0, 2));
     const minutes = parseInt(line.result.completionTime.substring(2));
-    let totalMinutes = hours * 60 + minutes + 30;
+    let totalMinutes = hours * 60 + minutes - 30;
     
-    if (totalMinutes >= 24 * 60) totalMinutes -= 24 * 60;
+    if (totalMinutes < 0) totalMinutes += 24 * 60;
     
     const newHours = Math.floor(totalMinutes / 60);
     const newMinutes = totalMinutes % 60;
@@ -885,7 +914,7 @@ function App() {
                   onClick={() => handleTimeJump(activeTab)}
                   className="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium transition-colors"
                 >
-                  JUMP +30m
+                  JUMP -30m
                 </button>
               </div>
               <p className="font-mono text-lg font-bold">{formatDisplayTime(line.result.completionTime)}</p>
@@ -914,6 +943,18 @@ function App() {
   const resultBorder = darkMode ? 'border-gray-600' : 'border-green-200';
   const resultText = darkMode ? 'text-gray-100' : 'text-green-800';
 
+  const handlePrint = () => {
+    setShowPrintView(true);
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
+  };
+
+  if (showPrintView) {
+    return <PrintHistory calculations={savedCalculations} />;
+  }
+
   return (
     <div className={`min-h-screen ${bgColor} p-2 sm:p-4 pb-24 transition-colors duration-200`}>
       <div className="max-w-3xl mx-auto">
@@ -924,6 +965,15 @@ function App() {
               <h1 className={`text-xl sm:text-2xl font-bold ${textColor}`}>Production Calculator</h1>
             </div>
             <div className="flex space-x-1 sm:space-x-2">
+              {showHistory && (
+                <button
+                  onClick={handlePrint}
+                  className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                  title="Print History"
+                >
+                  <Printer className="w-5 h-5 text-indigo-600" />
+                </button>
+              )}
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -1048,10 +1098,13 @@ function App() {
             </div>
           ) : showSettings ? (
             <div className="space-y-4 sm:space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className={`text-lg sm:text-xl font-semibold ${textColor} mb-4`}>Line {activeTab} Settings</h2>
+              <div className="flex flex-col items-center mb-8">
+                <h2 className={`text-lg sm:text-xl font-semibold ${textColor} mb-6`}>Line {activeTab} Settings</h2>
+                <div className="w-3/4 flex items-center justify-center space-x-3 px-8 py-4 bg-green-600 text-white rounded-xl shadow-lg text-lg font-bold">
+                  <Save className="w-6 h-6" />
+                  <span>Changes Saved Automatically</span>
+                </div>
               </div>
-              
               {(['dayShift', 'afternoonShift', 'nightShift'] as const).map((shiftType) => {
                 const shift = schedule[activeTab][shiftType];
                 const shiftName = shiftType === 'dayShift' ? 'Day Shift' :
