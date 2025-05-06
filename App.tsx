@@ -761,6 +761,20 @@ function App() {
         <div className={`transition-all duration-300 ease-in-out ${isMinimized ? 'max-h-0 opacity-0' : 'max-h-[2000px] opacity-100'} overflow-hidden`}>
           <div className="p-4 space-y-4">
             <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className={`${resultText} font-medium`}>Completion Time</h4>
+                <button
+                  onClick={() => handleTimeJump(activeTab)}
+                  className="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium transition-colors"
+                >
+                  JUMP -30m
+                </button>
+              </div>
+              <p className="font-mono text-lg font-bold">{formatDisplayTime(line.result.completionTime)}</p>
+              <p className="text-sm mt-1">{line.result.completionDate}</p>
+            </div>
+
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
               <h4 className={`font-semibold mb-2 ${textColor}`}>Input Values</h4>
               <div className="space-y-1">
                 <p>Current Progress: {line.currentProgress}</p>
@@ -794,6 +808,35 @@ function App() {
         </div>
       </div>
     );
+  };
+
+  const handleTimeJump = (lineNumber: number) => {
+    const line = lines[lineNumber];
+    if (!line.result) return;
+
+    // Subtract 30 minutes from completion time
+    const hours = parseInt(line.result.completionTime.substring(0, 2));
+    const minutes = parseInt(line.result.completionTime.substring(2));
+    let totalMinutes = hours * 60 + minutes - 30;
+    
+    if (totalMinutes < 0) totalMinutes += 24 * 60;
+    
+    const newHours = Math.floor(totalMinutes / 60);
+    const newMinutes = totalMinutes % 60;
+    const newCompletionTime = `${newHours.toString().padStart(2, '0')}${newMinutes.toString().padStart(2, '0')}`;
+
+    // Update the result with new completion time
+    setLines(prev => ({
+      ...prev,
+      [lineNumber]: {
+        ...prev[lineNumber],
+        result: {
+          ...prev[lineNumber].result!,
+          completionTime: newCompletionTime,
+          completionShift: getShiftType(newCompletionTime, lineNumber, schedule)
+        }
+      }
+    }));
   };
 
   return (
